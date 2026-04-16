@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Dashboard - Blood Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        
+        // Iconos simplificados (usando SVG paths de lucide-react)
+        const Icon = ({ d, className = "w-5 h-5" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={d} />
+            </svg>
+        );
+
+        const Home = (props) => <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" {...props} />;
+        const FileText = (props) => <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" {...props} />;
+        const Users = (props) => <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" {...props} />;
+        const Package = (props) => <Icon d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12" {...props} />;
+        const MapPin = (props) => <Icon d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...props} />;
+        const BarChart3 = (props) => <Icon d="M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3" {...props} />;
+        const Settings = (props) => <Icon d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...props} />;
+        const Search = (props) => <Icon d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" {...props} />;
+        const Bell = (props) => <Icon d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0" {...props} />;
+        const ChevronDown = (props) => <Icon d="M6 9l6 6 6-6" {...props} />;
+        const Menu = (props) => <Icon d="M3 12h18 M3 6h18 M3 18h18" {...props} />;
+        const Droplet = (props) => <Icon d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" {...props} />;
+        const Clock = (props) => <Icon d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2" {...props} />;
+        const CheckCircle = (props) => <Icon d="M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01l-3-3" {...props} />;
+        const AlertCircle = (props) => <Icon d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 8v4 M12 16h.01" {...props} />;
+        const UserCheck = (props) => <Icon d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M12.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M17 11l2 2 4-4" {...props} />;
+        const ChevronRight = (props) => <Icon d="M9 18l6-6-6-6" {...props} />;
+
+        // Datos mock
+        const mockData = {
+          metrics: [
+            { id: 1, label: 'Solicitudes Urgentes', value: 3, color: 'bg-red-500', icon: Droplet },
+            { id: 2, label: 'Solicitudes Activas', value: 7, color: 'bg-green-500', icon: FileText },
+            { id: 3, label: 'Donantes Hoy', value: 15, color: 'bg-blue-500', icon: Users },
+            { id: 4, label: 'Stock Crítico', value: 2, color: 'bg-orange-500', icon: AlertCircle }
+          ],
+          urgentAlerts: [
+            {
+              id: '0245',
+              bloodType: 'O-',
+              hospital: 'Hospital Central',
+              urgency: 'ALTA',
+              time: '8 minutos'
+            }
+          ],
+          history: [
+            { id: '0245', type: 'O-', urgency: 'Alta', status: 'En Proceso', time: '8 min' },
+            { id: '0242', type: 'A+', urgency: 'Alta', status: 'Completada', time: '20 min' },
+            { id: '0240', type: 'B-', urgency: 'Media', status: 'Pendiente', time: '45 min' }
+          ],
+          donors: [
+            { name: 'Juan Pérez', bloodType: 'A+', status: 'Disponible', statusColor: 'bg-teal-500' },
+            { name: 'María Gómez', bloodType: 'O-', status: 'En Camino', statusColor: 'bg-gray-400' },
+            { name: 'Carlos Díaz', bloodType: 'B+', status: 'Elegible', statusColor: 'bg-orange-400' }
+          ],
+          stock: [
+            { type: 'A+', percentage: 75, color: 'bg-green-500' },
+            { type: 'O-', percentage: 25, color: 'bg-red-500' },
+            { type: 'B+', percentage: 40, color: 'bg-yellow-500' },
+            { type: 'A-', percentage: 50, color: 'bg-orange-500' }
+          ],
+          banks: [
+            { name: 'Banco Central', lat: 18.486, lng: -69.931 },
+            { name: 'Cruz Roja', lat: 18.476, lng: -69.895 },
+            { name: 'Salvadores Unidos', lat: 18.468, lng: -69.885 },
+            { name: 'Causa Justa', lat: 18.471, lng: -69.910 }
+          ]
+        };
+
+        // Componentes
+        const MetricCard = ({ label, value, color, icon: IconComponent }) => (
+          <div className={`${color} rounded-lg p-6 text-white shadow-md`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90 font-medium">{label}</p>
+                <p className="text-4xl font-bold mt-2">{value}</p>
+              </div>
+              <IconComponent className="w-12 h-12 opacity-80" />
+            </div>
+          </div>
+        );
+
+        const UrgentAlert = ({ alert, onAccept, onReassign }) => (
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 mb-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-white px-2 py-1 rounded text-sm font-semibold text-gray-700">
+                    ID: {alert.id}
+                  </span>
+                  <span className="text-red-700 font-bold">
+                    Se necesita {alert.bloodType}
+                  </span>
+                </div>
+                <p className="text-gray-700 text-sm mb-2">en {alert.hospital}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-red-600 font-semibold">
+                    Urgencia: {alert.urgency}
+                  </span>
+                  <span className="flex items-center gap-1 text-gray-600">
+                    <Clock className="w-4 h-4" />
+                    Hace {alert.time}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => onAccept(alert.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Aceptar
+                </button>
+                <button 
+                  onClick={() => onReassign(alert.id)}
+                  className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Reasignar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+        const HistoryTable = ({ history }) => (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Historial de Solicitudes</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">ID</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tipo</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Urgencia</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Estado</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tiempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((item) => (
+                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 text-sm text-gray-700">{item.id}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full text-white font-bold text-sm ${
+                          item.type === 'O-' ? 'bg-red-500' : 
+                          item.type === 'A+' ? 'bg-red-600' : 
+                          'bg-red-700'
+                        }`}>
+                          {item.type}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          item.urgency === 'Alta' ? 'bg-red-100 text-red-700' : 
+                          item.urgency === 'Media' ? 'bg-blue-100 text-blue-700' : 
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {item.urgency}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-700">{item.status}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{item.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button className="mt-4 text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
+              Ver todas <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        );
+
+        const DonorsList = ({ donors }) => (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Donantes Disponibles</h3>
+            <div className="space-y-3">
+              {donors.map((donor, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{donor.name}</p>
+                      <p className="text-sm text-gray-500">{donor.bloodType}</p>
+                    </div>
+                  </div>
+                  <span className={`${donor.statusColor} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+                    {donor.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button className="mt-4 text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
+              Ver lista <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        );
+
+        const StockStatus = ({ stock }) => (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Estado de Stock</h3>
+            <div className="space-y-4">
+              {stock.map((item, index) => (
+                <div key={index}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-gray-800">{item.type}</span>
+                    <span className="text-sm text-gray-500">{item.percentage}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
+                      style={{ width: `${item.percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button className="mt-4 text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
+              Ver reporte <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        );
+
+        const MapView = ({ banks }) => (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="relative h-80 bg-gray-200">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-full h-full bg-gradient-to-br from-blue-100 to-green-100">
+                  {banks.map((bank, index) => (
+                    <div
+                      key={index}
+                      className="absolute bg-white rounded-lg shadow-lg px-3 py-2 text-sm font-medium text-gray-700 border-2 border-red-500"
+                      style={{
+                        top: `${20 + index * 20}%`,
+                        left: `${30 + index * 15}%`
+                      }}
+                    >
+                      <MapPin className="w-4 h-4 text-red-500 inline mr-1" />
+                      {bank.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 flex justify-end">
+              <button className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
+                Ver reporte <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        );
+
+        const Sidebar = ({ activeSection, setActiveSection }) => {
+          const menuItems = [
+            { id: 'dashboard', label: 'Dashboard', icon: Home },
+            { id: 'solicitudes', label: 'Solicitudes', icon: FileText },
+            { id: 'donantes', label: 'Donantes', icon: Users },
+            { id: 'stock', label: 'Stock', icon: Package },
+            { id: 'bancos', label: 'Bancos', icon: MapPin },
+            { id: 'reportes', label: 'Reportes', icon: BarChart3 }
+          ];
+
+          return (
+            <div className="bg-red-700 text-white w-64 min-h-screen flex flex-col">
+              <div className="p-6 border-b border-red-600">
+                <div className="flex items-center gap-3">
+                  <Droplet className="w-8 h-8" />
+                  <span className="text-xl font-bold">Blood Bank</span>
+                </div>
+              </div>
+
+              <nav className="flex-1 py-4">
+                {menuItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id)}
+                      className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-red-600 transition-colors ${
+                        activeSection === item.id ? 'bg-red-800 border-l-4 border-white' : ''
+                      }`}
+                    >
+                      <IconComponent className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="p-4 border-t border-red-600">
+                <button className="w-full flex items-center gap-3 px-6 py-3 hover:bg-red-600 rounded-lg transition-colors">
+                  <Settings className="w-5 h-5" />
+                  <span className="font-medium">Configuración</span>
+                </button>
+              </div>
+            </div>
+          );
+        };
+
+        const Header = () => (
+          <header className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 max-w-xl">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Buscar..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">Santo Domingo, RD</span>
+                </div>
+                
+                <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+
+                <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                </div>
+              </div>
+            </div>
+          </header>
+        );
+
+        const HospitalDashboard = () => {
+          const [activeSection, setActiveSection] = useState('dashboard');
+
+          const handleAccept = (id) => {
+            alert(`Solicitud ${id} aceptada`);
+          };
+
+          const handleReassign = (id) => {
+            alert(`Solicitud ${id} reasignada`);
+          };
+
+          return (
+            <div className="flex h-screen bg-gray-50">
+              <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <Header />
+
+                <main className="flex-1 overflow-y-auto p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    {mockData.metrics.map((metric) => (
+                      <MetricCard key={metric.id} {...metric} />
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-lg font-semibold text-gray-800">Alertas Urgentes</h2>
+                          <button className="text-gray-400 hover:text-gray-600">
+                            <Menu className="w-5 h-5" />
+                          </button>
+                        </div>
+                        {mockData.urgentAlerts.map((alert) => (
+                          <UrgentAlert 
+                            key={alert.id}
+                            alert={alert}
+                            onAccept={handleAccept}
+                            onReassign={handleReassign}
+                          />
+                        ))}
+                      </div>
+
+                      <HistoryTable history={mockData.history} />
+                      <MapView banks={mockData.banks} />
+                    </div>
+
+                    <div className="space-y-6">
+                      <DonorsList donors={mockData.donors} />
+                      <StockStatus stock={mockData.stock} />
+                    </div>
+                  </div>
+                </main>
+              </div>
+            </div>
+          );
+        };
+
+        // Renderizar la aplicación
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HospitalDashboard />);
+    </script>
+</body>
+</html>
